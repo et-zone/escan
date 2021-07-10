@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"time"
@@ -25,6 +26,74 @@ type Stu struct {
 	Name  string  `json:"name" db:"name" fieldtag:"insert,select"`
 	Age   float64 `json:"age" db:"age" fieldtag:"insert,select"`
 	Ctime string  `json:"ctime" db:"c_time" fieldtag:"insert,select"` //
+}
+
+var stuBuild = escan.NewBuilder("stu", new(Stu))
+
+func InsertStus(des *[]interface{}) error {
+	sql, args := stuBuild.InsertBuilderSql(des)
+	_, err := sqlDB.Exec(sql, args...)
+	return err
+}
+
+func UpdateStu(kv map[string]interface{}, conditions map[string]*escan.Condition) error {
+	sql, args := stuBuild.UpdateBuilderSql(kv, conditions)
+	_, err := sqlDB.Exec(sql, args...)
+	return err
+}
+
+func DelStu(conditions map[string]*escan.Condition) error {
+	sql, args := stuBuild.DeleteBuilderSql(conditions)
+	_, err := sqlDB.Exec(sql, args...)
+	return err
+}
+
+func SelectStus(conditions map[string]*escan.Condition, screen *escan.Screen) (*[]Stu, error) {
+
+	sql, args := stuBuild.SelectBuilderSql([]string{}, conditions, screen)
+	rows, err := sqlDB.Query(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	stus := []Stu{}
+	err = escan.NewEscan().ScanAll(&stus, rows)
+	if err != nil {
+		return nil, err
+	}
+	return &stus, err
+}
+
+//fields Can be empty,If it is empty, it will get all
+func SelectStusToMap(fields []string, conditions map[string]*escan.Condition, screen *escan.Screen) (*[]map[string]string, error) {
+
+	sql, args := stuBuild.SelectBuilderSql(fields, conditions, screen)
+	rows, err := sqlDB.Query(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	stusMap := []map[string]string{}
+	err = escan.NewEscan().ScanAll(&stusMap, rows)
+	if err != nil {
+		return nil, err
+	}
+	return &stusMap, err
+}
+
+//field Can be '',If it is '', it will get count(*)
+func SelectStusCount(field string, conditions map[string]escan.Condition, screen *escan.Screen) (int, error) {
+
+	sql, args := stuBuild.SelectBuilderCountSql(field, conditions, screen)
+
+	rows, err := sqlDB.Query(sql, args...)
+	if err != nil {
+		return 0, err
+	}
+	count := map[string]int{}
+	err = escan.NewEscan().ScanOne(&count, rows)
+	if err != nil {
+		return 0, err
+	}
+	return count["c"], err
 }
 
 func InitSQL(cfg *EConfig) {
@@ -60,14 +129,20 @@ func main() {
 		DB:       "test",
 	})
 	// Test_Insert()
-	// Test_Select()
-	Test_Update()
+
+	// Test_Update()
 	// Test_Del()
+
+	// Test_Select_Map()
+	// Test_Select_Stu()
+	// Test_Select_Count()
+	s := "2006-01-02 15:04:05"
+	fmt.Println(s[11:])
 }
 
 func Test_Insert() {
 	s := []interface{}{}
-	name := "biubiu"
+	name := "biubiu22"
 	age := float64(12)
 	t := time.Now().Format("2006-01-02 15:04:05")
 	tmp := Stu{
@@ -75,10 +150,10 @@ func Test_Insert() {
 		Age:   age,
 		Ctime: t,
 	}
+
 	s = append(s, tmp)
-	build := escan.NewBuilder("stu", new(Stu))
-	sql, args := build.InsertBuilderSql(&s)
-	_, err := sqlDB.Exec(sql, args...)
+
+	err := InsertStus(&s)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -88,56 +163,70 @@ func Test_Insert() {
 func Test_Update() {
 
 	kv := map[string]interface{}{"age": 18}
-	var id interface{} = escan.Int64(5)
-	condtions := map[string]escan.Condition{"id": escan.Condition{Equal: &id}}
+	// var id interface{} = escan.Int64(22)
+	conditions := map[string]*escan.Condition{"id": escan.NewCondition().Equal(18)}
 
-	build := escan.NewBuilder("stu", new(Stu))
-	sql, args := build.UpdateBuilderSql(kv, condtions)
-	_, err := sqlDB.Exec(sql, args...)
+	err := UpdateStu(kv, conditions)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
 }
 
-func Test_Select() {
-	fields := []string{"name"} //写了要保证准确
-	// fields := []string{} //不写默认全部查询
+func Test_Select_Map() {
+	// fields := []string{"id"} //写了要保证准确
+	fields := []string{} //不写默认全部查询
 	// var id interface{} = 6
 	// condtions := map[string]db.Condition{"id": db.Condition{Equal: &id}}
-	condtions := map[string]escan.Condition{}
+	conditions := map[string]*escan.Condition{}
 	page := 2
 	pageSize := 3
-	sr := &escan.Screen{
-		Limit:       pageSize,
-		OfSet:       (page - 1) * pageSize,
-		OrderByDesc: []string{"id"},
+	sr := &escan.Screen{}
+	sr.SetOrderByDesc([]string{"id"}).SetPageSize(page, pageSize)
+	data, err := SelectStusToMap(fields, conditions, sr)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
-	build := escan.NewBuilder("stu", new(Stu))
-	sql, args := build.SelectBuilderSql(fields, condtions, sr)
+	fmt.Println(*data)
+}
 
-	rows, err := sqlDB.Query(sql, args...)
+func Test_Select_Stu() {
+	conditions := map[string]*escan.Condition{}
+	page := 2
+	pageSize := 3
+	sr := &escan.Screen{}
+	sr.SetOrderByDesc([]string{"id"}).SetPageSize(page, pageSize)
+	data, err := SelectStus(conditions, sr)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	stus := []Stu{}
-	err = escan.NewEscan().ScanAll(&stus, rows)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	fmt.Println(stus)
+	fmt.Println(*data)
 }
 
 func Test_Del() {
 
-	var id interface{} = 6
-	condtions := map[string]escan.Condition{"id": escan.Condition{Equal: &id}}
-
-	build := escan.NewBuilder("stu", new(Stu))
-	sql, args := build.DeleteBuilderSql(condtions)
-	_, err := sqlDB.Exec(sql, args...)
+	// var id interface{} = 2
+	conditions := map[string]*escan.Condition{
+		"id": escan.NewCondition().Equal(18),
+	}
+	b, _ := json.Marshal(escan.NewCondition().Equal(18))
+	fmt.Println(string(b))
+	err := DelStu(conditions)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
+}
+
+func Test_Select_Count() {
+	conditions := map[string]escan.Condition{}
+	page := 2
+	pageSize := 3
+	sr := &escan.Screen{}
+	sr.SetOrderByDesc([]string{"id"}).SetPageSize(page, pageSize)
+	data, err := SelectStusCount("", conditions, sr)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(data)
 }
