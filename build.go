@@ -9,37 +9,28 @@ const (
 	TAG_SELECT = "select"
 )
 
-func NewSelectBuilder(tableName string, tag string, up *sqlbuilder.SelectBuilder) {
-
-}
-
-func NewUpdateBuilder(tableName string, tag string, up *sqlbuilder.SelectBuilder) {
-
-}
-
 //update value
 type KV map[string]interface{}
 
 //where condition
 type Condition struct {
-	Equal            *interface{}
-	Contain          []interface{}
-	NotEqual         *interface{}
-	LessThan         *interface{}
-	LessEqualThan    *interface{}
-	GreaterThan      *interface{}
-	GreaterEqualThan *interface{}
-	Between          []interface{}
-	Like             *string
+	Equal            *interface{}  `json:"equal,omitempty"`
+	Contain          []interface{} `json:"contain,omitempty"`
+	NotEqual         *interface{}  `json:"neq,omitempty"`
+	LessThan         *interface{}  `json:"lt,omitempty"`
+	LessEqualThan    *interface{}  `json:"lte,omitempty"`
+	GreaterThan      *interface{}  `json:"gt,omitempty"`
+	GreaterEqualThan *interface{}  `json:"gte,omitempty"`
+	Between          []interface{} `json:"between,omitempty"`
+	Like             *string       `json:"like,omitempty"`
 }
 
 //Screen condition
 type Screen struct {
-	OrderByAsc  []string
-	OrderByDesc []string
-	Asc         bool
-	Limit       int
-	OfSet       int
+	OrderByAsc  []string `json:"orderByAsc,omitempty"`
+	OrderByDesc []string `json:"orderByDesc,omitempty"`
+	Limit       int      `json:"like,omitempty"`
+	OfSet       int      `json:"like,omitempty"`
 }
 
 //like page=1,size=10
@@ -157,5 +148,40 @@ func (this *SBuilder) SelectBuilderSql(fields []string, conditions map[string]Co
 
 func (this *SBuilder) InsertBuilderSql(des *[]interface{}) (sql string, args []interface{}) {
 	return this.st.InsertIntoForTag(this.TableName, TAG_INSERT, *des...).Build()
+}
 
+func (this *SBuilder) DeleteBuilderSql(conditions map[string]Condition) (sql string, args []interface{}) {
+	del := sqlbuilder.DeleteFrom(this.TableName)
+
+	for field, condition := range conditions {
+		if len(condition.Contain) != 0 {
+			del.Where(del.In(field, condition.Contain...))
+		}
+		if condition.Equal != nil {
+			del.Where(del.Equal(field, *condition.Equal))
+		}
+		if condition.NotEqual != nil {
+			del.Where(del.NotEqual(field, *condition.NotEqual))
+		}
+		if len(condition.Between) == 2 {
+			del.Where(del.Between(field, condition.Between[0], condition.Between[1]))
+		}
+		if condition.Like != nil {
+			del.Where(del.Like(field, *condition.Like))
+		}
+		if condition.LessThan != nil {
+			del.Where(del.LessThan(field, *condition.LessThan))
+		}
+		if condition.LessEqualThan != nil {
+			del.Where(del.LessEqualThan(field, *condition.LessEqualThan))
+		}
+		if condition.GreaterThan != nil {
+			del.Where(del.GreaterThan(field, *condition.GreaterThan))
+		}
+		if condition.GreaterEqualThan != nil {
+			del.Where(del.GreaterEqualThan(field, *condition.GreaterEqualThan))
+		}
+
+	}
+	return del.Build()
 }

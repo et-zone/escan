@@ -60,8 +60,9 @@ func main() {
 		DB:       "test",
 	})
 	// Test_Insert()
-	Test_Select()
-	// Test_Update()
+	// Test_Select()
+	Test_Update()
+	// Test_Del()
 }
 
 func Test_Insert() {
@@ -87,7 +88,7 @@ func Test_Insert() {
 func Test_Update() {
 
 	kv := map[string]interface{}{"age": 18}
-	var id interface{} = 6
+	var id interface{} = escan.Int64(5)
 	condtions := map[string]escan.Condition{"id": escan.Condition{Equal: &id}}
 
 	build := escan.NewBuilder("stu", new(Stu))
@@ -100,8 +101,8 @@ func Test_Update() {
 }
 
 func Test_Select() {
-	// fields := []string{"name"}
-	fields := []string{} //不写默认全部查询
+	fields := []string{"name"} //写了要保证准确
+	// fields := []string{} //不写默认全部查询
 	// var id interface{} = 6
 	// condtions := map[string]db.Condition{"id": db.Condition{Equal: &id}}
 	condtions := map[string]escan.Condition{}
@@ -125,4 +126,18 @@ func Test_Select() {
 		fmt.Println(err.Error())
 	}
 	fmt.Println(stus)
+}
+
+func Test_Del() {
+
+	var id interface{} = 6
+	condtions := map[string]escan.Condition{"id": escan.Condition{Equal: &id}}
+
+	build := escan.NewBuilder("stu", new(Stu))
+	sql, args := build.DeleteBuilderSql(condtions)
+	_, err := sqlDB.Exec(sql, args...)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 }
