@@ -28,6 +28,14 @@ type Stu struct {
 	Ctime string  `json:"ctime" db:"c_time" fieldtag:"insert,select"` //
 }
 
+//结构化对外可以使用，对外是json的就不需要使用了
+type StuType struct {
+	ID    *int64   `json:"id" db:"id" fieldtag:"select"` //db=- 不会查询,不带tag不操作。db 和fieldtag 必传
+	Name  *string  `json:"name" db:"name" fieldtag:"insert,select"`
+	Age   *float64 `json:"age" db:"age" fieldtag:"insert,select"`
+	Ctime *string  `json:"ctime" db:"c_time" fieldtag:"insert,select"` //
+}
+
 var stuBuild = escan.NewBuilder("stu", new(Stu))
 
 func InsertStus(des *[]interface{}) error {
@@ -75,6 +83,14 @@ func SelectStusToMap(fields []string, conditions map[string]*escan.Condition, sc
 	err = escan.NewEscan().ScanAll(&stusMap, rows)
 	if err != nil {
 		return nil, err
+	}
+	for i, val := range stusMap {
+		v, err := escan.ChToJsonByTagDB(val, Stu{})
+		if err != nil {
+			stusMap[i] = nil
+		} else {
+			stusMap[i] = v
+		}
 	}
 	return &stusMap, err
 }
@@ -128,28 +144,33 @@ func main() {
 		Port:     3366,
 		DB:       "test",
 	})
-	// Test_Insert()
+	Test_Insert()
 
 	// Test_Update()
 	// Test_Del()
 
-	// Test_Select_Map()
+	Test_Select_Map()
 	// Test_Select_Stu()
 	// Test_Select_Count()
-	s := "2006-01-02 15:04:05"
-	fmt.Println(s[11:])
+	// s := "2006-01-02 15:04:05"
+	// fmt.Println(s[11:])
 }
 
 func Test_Insert() {
 	s := []interface{}{}
-	name := "biubiu22"
-	age := float64(12)
+	name := "biubiu99"
+	// age := float64(12)
 	t := time.Now().Format("2006-01-02 15:04:05")
 	tmp := Stu{
-		Name:  name,
-		Age:   age,
+		Name: name,
+		// Age:   age,
 		Ctime: t,
 	}
+
+	// tmpType := StuType{
+	// 	Name: &name,
+	// 	Age:  &age,
+	// }
 
 	s = append(s, tmp)
 
@@ -187,7 +208,8 @@ func Test_Select_Map() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	fmt.Println(*data)
+	b, _ := json.Marshal(data)
+	fmt.Println(string(b))
 }
 
 func Test_Select_Stu() {
