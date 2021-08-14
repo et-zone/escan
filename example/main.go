@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.con/et-zone/escan"
 	"time"
+
+	"github.com/et-zone/escan"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var sqlDB *sql.DB
@@ -198,6 +199,9 @@ func Test_Select_Map() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	//for _, v := range *data {
+	//	util.ChToJsonByTagDB(v, Stu{})
+	//}
 	b, _ := json.Marshal(data)
 	fmt.Println(string(b))
 }

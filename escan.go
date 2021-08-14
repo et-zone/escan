@@ -2,8 +2,10 @@ package escan
 
 import (
 	"database/sql"
-	"github.con/et-zone/escan/scan"
+
+	"github.com/et-zone/escan/scan"
 )
+
 //explanation
 //use db rows ,all of the db field can not be null,so you must set value every field
 //
@@ -16,4 +18,3 @@ type EScan interface {
 func NewEscan() EScan {
 	return scan.NewEScanDef()
 }
-

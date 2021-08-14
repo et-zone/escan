@@ -1,4 +1,4 @@
-module github.con/et-zone/escan
+module github.com/et-zone/escan
 
 go 1.13
 

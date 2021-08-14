@@ -3,7 +3,7 @@ package scan
 import (
 	"database/sql"
 
-	"github.con/et-zone/escan/scan/internal"
+	"github.com/et-zone/escan/scan/internal"
 )
 
 type EScanDef struct {
