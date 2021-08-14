@@ -4,11 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-
-	"time"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.con/et-zone/escan"
+	"time"
 )
 
 var sqlDB *sql.DB
@@ -22,7 +20,7 @@ type EConfig struct {
 }
 
 type Stu struct {
-	ID    int64   `json:"id" db:"id" fieldtag:"select"` //db=- 不会查询,不带tag不操作。db 和fieldtag 必传
+	ID    int64   `json:"ID" db:"id" fieldtag:"select"` //db=- 不会查询,不带tag不操作。db 和fieldtag 必传
 	Name  string  `json:"name" db:"name" fieldtag:"insert,select"`
 	Age   float64 `json:"age" db:"age" fieldtag:"insert,select"`
 	Ctime string  `json:"ctime" db:"c_time" fieldtag:"insert,select"` //
@@ -83,14 +81,6 @@ func SelectStusToMap(fields []string, conditions map[string]*escan.Condition, sc
 	err = escan.NewEscan().ScanAll(&stusMap, rows)
 	if err != nil {
 		return nil, err
-	}
-	for i, val := range stusMap {
-		v, err := escan.ChToJsonByTagDB(val, Stu{})
-		if err != nil {
-			stusMap[i] = nil
-		} else {
-			stusMap[i] = v
-		}
 	}
 	return &stusMap, err
 }
