@@ -3,7 +3,7 @@ package escan
 import (
 	"fmt"
 
-	"github.com/huandu/go-Sqlbuilder"
+	"github.com/huandu/go-sqlbuilder"
 )
 
 const (
