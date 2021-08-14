@@ -87,10 +87,10 @@ func (cd *Condition) Like(like string) *Condition {
 
 //Screen condition
 type Screen struct {
-	orderByAsc  []string `json:"orderByAsc,omitempty"`
-	orderByDesc []string `json:"orderByDesc,omitempty"`
-	limit       int      `json:"like,omitempty"`
-	ofSet       int      `json:"like,omitempty"`
+	OrderByAsc  []string `json:"orderByAsc,omitempty"`
+	OrderByDesc []string `json:"orderByDesc,omitempty"`
+	Limit       int      `json:"like,omitempty"`
+	OfSet       int      `json:"like,omitempty"`
 }
 
 func NewScreen() Screen {
@@ -99,17 +99,17 @@ func NewScreen() Screen {
 
 //like page=1,size=10
 func (this *Screen) SetPageSize(page int, pageSize int) *Screen {
-	this.ofSet = int((page - 1) * pageSize)
-	this.limit = int(pageSize)
+	this.OfSet = int((page - 1) * pageSize)
+	this.Limit = int(pageSize)
 	return this
 }
 
 func (this *Screen) SetOrderByAsc(fields []string) *Screen {
-	this.orderByAsc = fields
+	this.OrderByAsc = fields
 	return this
 }
 func (this *Screen) SetOrderByDesc(fields []string) *Screen {
-	this.orderByDesc = fields
+	this.OrderByDesc = fields
 	return this
 }
 
@@ -204,17 +204,17 @@ func (this *SBuilder) SelectBuilderSql(fields []string, conditions map[string]*C
 		}
 	}
 	if screen != nil {
-		if len(screen.orderByAsc) > 0 {
-			se.OrderBy(screen.orderByAsc...).Asc()
+		if len(screen.OrderByAsc) > 0 {
+			se.OrderBy(screen.OrderByAsc...).Asc()
 		}
-		if len(screen.orderByDesc) > 0 {
-			se.OrderBy(screen.orderByDesc...).Desc()
+		if len(screen.OrderByDesc) > 0 {
+			se.OrderBy(screen.OrderByDesc...).Desc()
 		}
-		if screen.limit > 0 {
-			se.Limit(screen.limit)
+		if screen.Limit > 0 {
+			se.Limit(screen.Limit)
 		}
-		if screen.limit > 0 {
-			se.Offset(screen.ofSet)
+		if screen.Limit > 0 {
+			se.Offset(screen.OfSet)
 		}
 	}
 	return se.Build()
@@ -299,11 +299,11 @@ func (this *SBuilder) SelectBuilderCountSql(field string, conditions map[string]
 		}
 	}
 	if screen != nil {
-		if len(screen.orderByAsc) > 0 {
-			se.OrderBy(screen.orderByAsc...).Asc()
+		if len(screen.OrderByAsc) > 0 {
+			se.OrderBy(screen.OrderByAsc...).Asc()
 		}
-		if len(screen.orderByDesc) > 0 {
-			se.OrderBy(screen.orderByDesc...).Desc()
+		if len(screen.OrderByDesc) > 0 {
+			se.OrderBy(screen.OrderByDesc...).Desc()
 		}
 
 	}
