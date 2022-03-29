@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/et-zone/escan"
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
 )
 
 var sqlDB *sql.DB
